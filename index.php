@@ -4,6 +4,28 @@ session_start();
 
 require 'conexao.php';
 
+if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['excluir_id'])) {
+    $id = (int) $_POST['excluir_id'];
+
+    $stmt = $conexao->prepare('DELETE FROM trens WHERE id_trem = ?');
+    $stmt->bind_param('i', $id);
+
+    if ($stmt->execute()) {
+        $_SESSION['mensagem'] = "Trem excluído com sucesso.";
+        $stmt->close();
+        header('Location: index.php');
+        exit;
+    } else {
+        $_SESSION['mensagem'] = "Erro ao excluir o trem.";
+        $stmt->close();
+        header('Location: index.php');
+        exit;
+    }
+}
+
+$mensagem = $_SESSION['mensagem'] ?? '';
+unset($_SESSION['mnesagem']);
+
 $resultado = $conexao->query('SELECT * FROM trens ORDER BY prefixo_trem');
 ?>
 <!DOCTYPE html>
@@ -20,6 +42,12 @@ $resultado = $conexao->query('SELECT * FROM trens ORDER BY prefixo_trem');
     <div class="titulo">
         <h1>Frota Ferroviária</h1>
     </div>
+
+    <?php
+    if($mensagem !== ''):
+    ?>
+        <p class="aviso"><?=htmlspecialchars($mensagem)?></p>
+
 
     <?php
     if ($resultado->num_rows === 0):
